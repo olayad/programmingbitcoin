@@ -165,7 +165,7 @@ Write the `is_valid` method for `MerkleBlock`.
 # end::exercise7[]
 '''
 
-
+varint
 # tag::answer7[]
 def is_valid(self):
     flag_bits = bytes_to_bit_field(self.flags)

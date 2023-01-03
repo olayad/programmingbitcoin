@@ -25,11 +25,15 @@ class BloomFilter:
     def add(self, item):
         '''Add an item to the filter'''
         # iterate self.function_count number of times
-            # BIP0037 spec seed is i*BIP37_CONSTANT + self.tweak
-            # get the murmur3 hash given that seed
-            # set the bit at the hash mod the bitfield size (self.size*8)
-            # set the bit field at bit to be 1
-        raise NotImplementedError
+        # BIP0037 spec seed is i*BIP37_CONSTANT + self.tweak
+        # get the murmur3 hash given that seed
+        # set the bit at the hash mod the bitfield size (self.size*8)
+        # set the bit field at bit to be 1
+        for i in range (self.function_count):
+            seed = i * BIP37_CONSTANT + self.tweak
+            h = murmur3(item, seed=seed)
+            bit = h % (self.size * 8)
+            self.bit_field[bit] = 1
 
     def filter_bytes(self):
         return bit_field_to_bytes(self.bit_field)

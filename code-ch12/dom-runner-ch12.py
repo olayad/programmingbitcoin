@@ -13,4 +13,4 @@ import network
 import script
 import tx
 
-run(bloomfilter.BloomFilterTest("test_add"))
+run(bloomfilter.BloomFilterTest("test_filterload"))

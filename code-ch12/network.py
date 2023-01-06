@@ -313,10 +313,14 @@ class GetDataMessage:
 
     def serialize(self):
         # start with the number of items as a varint
+        s = encode_varint(len(self.data))
         # loop through each tuple (data_type, identifier) in self.data
+        for i in self.data:
             # data type is 4 bytes Little-Endian
+            s += int_to_little_endian(i[0], 4)
             # identifier needs to be in Little-Endian
-        raise NotImplementedError
+            s += i[1][::-1]
+        return s
 
 
 class GetDataMessageTest(TestCase):

@@ -19,7 +19,7 @@ from network import (
 from script import p2pkh_script, Script
 from tx import Tx, TxIn, TxOut
 
-last_block_hex = ''  # FILL THIS IN
+last_block_hex = '000000000000000add23deff07313e1d0d715a9ae5c0da5f4559d691d7c7d444'
 
 secret = little_endian_to_int(hash256(b'zifu'))  # FILL THIS IN
 print(f'secret:{secret}')
@@ -33,13 +33,16 @@ target_h160 = decode_base58(target_address)
 target_script = p2pkh_script(target_h160)
 fee = 5000  # fee in satoshis
 
-
 # connect to testnet.programmingbitcoin.com in testnet mode
-
+node = SimpleNode('testnet.programmingbitcoin.com', testnet=True, logging=False)
 # create a bloom filter of size 30 and 5 functions. Add a tweak.
+bf = BloomFilter(size=30, function_count=5, tweak=90210)
 # add the h160 to the bloom filter
+bf.add(h160)
 # complete the handshake
+node.handshake()
 # load the bloom filter with the filterload command
+node.send(bf.filterload())
 
 # set start block to last_block from above
 # send a getheaders message with the starting block

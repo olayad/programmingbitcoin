@@ -19,7 +19,7 @@ from network import (
 from script import p2pkh_script, Script
 from tx import Tx, TxIn, TxOut
 
-last_block_hex = '000000000000000add23deff07313e1d0d715a9ae5c0da5f4559d691d7c7d444'
+last_block_hex = '0000000000000024a214945dd448e45376891def9a8bf6d7e6c559c9617cf497'
 
 secret = little_endian_to_int(hash256(b'zifu'))  # FILL THIS IN
 print(f'secret:{secret}')
@@ -45,28 +45,53 @@ node.handshake()
 node.send(bf.filterload())
 
 # set start block to last_block from above
+start_block = bytes.fromhex(last_block_hex)
 # send a getheaders message with the starting block
+getheaders = GetHeadersMessage(start_block=start_block)
 
+node.send(getheaders)
 # wait for the headers message
+headers = node.wait_for(HeadersMessage)
 # store the last block as None
+last_block = start_block
 # initialize the GetDataMessage
+getdata = GetDataMessage()
 # loop through the blocks in the headers
-# check that the proof of work on the block is valid
-# check that this block's prev_block is the last block
-# add a new item to the get_data_message
-# should be FILTERED_BLOCK_DATA_TYPE and block hash
-# set the last block to the current hash
+for b in headers.blocks:
+    # check that the proof of work on the block is valid
+    if not b.check_pow():
+        raise RuntimeError('invalid pow')
+    # check that this block's prev_block is the last block
+    if last_block != b.prev_block:
+        raise RuntimeError('invalid prev_block')
+    # add a new item to the get_data_message
+    # should be FILTERED_BLOCK_DATA_TYPE and block hash
+    getdata.add_data(FILTERED_BLOCK_DATA_TYPE, b.hash())
+    # set the last block to the current hash
+    last_block = b.hash()
 # send the getdata message
+node.send(getdata)
 
 # initialize prev_tx and prev_index to None
+prev_tx, prev_index = None, None
 # loop while prev_tx is None
+while prev_tx is None:
 # wait for the merkleblock or tx commands
-# if we have the merkleblock command
-# check that the MerkleBlock is valid
-# else we have the tx command
-# set the tx's testnet to be True
-# loop through the tx outs
-# if our output has the same address as our address we found it
+    message = node.wait_for(MerkleBlock, Tx)
+    # if we have the merkleblock command
+    # check that the MerkleBlock is valid
+    if message.command == b'merkleblock':
+        if not message.is_valid():
+            raise RuntimeError('invalid merkle proof')
+    # else we have the tx command
+    # set the tx's testnet to be True
+    # loop through the tx outs
+    else:
+        for i, tx_out in enumerate(message.tx_outs):
+            if tx_out.script_pubkey.address(testnet=True) == addr:
+                # if our output has the same address as our address we found it
+                print(f'found: {message.id}, {i}')
+
 # we found our utxo. set prev_tx, prev_index, and tx
 # create the TxIn
 # calculate the output amount (previous amount minus the fee)

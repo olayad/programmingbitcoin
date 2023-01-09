@@ -77,6 +77,9 @@ prev_tx, prev_index = None, None
 # loop while prev_tx is None
 while prev_tx is None:
 # wait for the merkleblock or tx commands
+# Bitcoin developer documentaiton: The "tx" message transmit a single transaction in the raw transaction format
+# in this case, it is sent in resposne to a "getdata" message that request a merkle block. This is in addition
+# to sending a "merkleblock" message. Each "tx" message in this case provides a mateched tx from that block
     message = node.wait_for(MerkleBlock, Tx)
     # if we have the merkleblock command
     # check that the MerkleBlock is valid

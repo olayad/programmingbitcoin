@@ -73,7 +73,7 @@ for b in headers.blocks:
 node.send(getdata)
 
 # initialize prev_tx and prev_index to None
-prev_tx, prev_index = None, None
+prev_tx, prev_index, utxo_amount = None, None, None
 # loop while prev_tx is None
 while prev_tx is None:
 # wait for the merkleblock or tx commands
@@ -94,10 +94,18 @@ while prev_tx is None:
             if tx_out.script_pubkey.address(testnet=True) == addr:
                 # if our output has the same address as our address we found it
                 print(f'found: {message.id}, {i}')
-
-# we found our utxo. set prev_tx, prev_index, and tx
+                # we found our utxo. set prev_tx, prev_index, and tx
+                prev_tx = message.id()
+                prev_index = i
+                utxo_amount = message.tx_outs[i].amount
 # create the TxIn
+prev_tx_raw = bytes.fromhex(prev_tx)
+tx_ins = []
+tx_in = tx_ins.append(TxIn(prev_tx=prev_tx_raw, prev_index=prev_index))
+
 # calculate the output amount (previous amount minus the fee)
+fee = utxo_amount * 0.95
+out_amount = utxo_amount - fee
 # create a new TxOut to the target script with the output amount
 # create a new transaction with the one input and one output
 # sign the only input of the transaction

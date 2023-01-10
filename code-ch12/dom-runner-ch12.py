@@ -21,13 +21,13 @@ from tx import Tx, TxIn, TxOut
 
 last_block_hex = '0000000000000024a214945dd448e45376891def9a8bf6d7e6c559c9617cf497'
 
-secret = little_endian_to_int(hash256(b'zifu'))  # FILL THIS IN
+secret = little_endian_to_int(hash256(b'guacamole12'))  # FILL THIS IN
 print(f'secret:{secret}')
 private_key = PrivateKey(secret=secret)
-addr = private_key.point.address(compressed=False, testnet=True)
+addr = private_key.point.address(testnet=True)
 h160 = decode_base58(addr)
 print(f'Address decoded:{addr}')
-
+exit()
 target_address = 'mwJn1YPMq7y5F8J3LkC5Hxg9PHyZ5K4cFv'
 target_h160 = decode_base58(target_address)
 target_script = p2pkh_script(target_h160)
@@ -73,7 +73,7 @@ for b in headers.blocks:
 node.send(getdata)
 
 # initialize prev_tx and prev_index to None
-prev_tx, prev_index, utxo_amount = None, None, None
+prev_tx, prev_index, prev_amount = None, None, None
 # loop while prev_tx is None
 while prev_tx is None:
 # wait for the merkleblock or tx commands
@@ -90,26 +90,32 @@ while prev_tx is None:
     # set the tx's testnet to be True
     # loop through the tx outs
     else:
+        message.testnet = True
         for i, tx_out in enumerate(message.tx_outs):
             if tx_out.script_pubkey.address(testnet=True) == addr:
                 # if our output has the same address as our address we found it
                 print(f'found: {message.id}, {i}')
                 # we found our utxo. set prev_tx, prev_index, and tx
-                prev_tx = message.id()
+                prev_tx = message.hash()
                 prev_index = i
-                utxo_amount = message.tx_outs[i].amount
+                prev_amount = tx_out.amount
 # create the TxIn
-prev_tx_raw = bytes.fromhex(prev_tx)
 tx_ins = []
-tx_in = tx_ins.append(TxIn(prev_tx=prev_tx_raw, prev_index=prev_index))
+tx_in = tx_ins.append(TxIn(prev_tx=prev_tx, prev_index=prev_index))
 
 # calculate the output amount (previous amount minus the fee)
-fee = utxo_amount * 0.95
-out_amount = utxo_amount - fee
+target_satoshis = prev_amount - fee
+tx_outs = []
+tx_outs.append(TxOut(amount=target_satoshis, script_pubkey=target_script))
+
 # create a new TxOut to the target script with the output amount
 # create a new transaction with the one input and one output
 # sign the only input of the transaction
 # serialize and hex to see what it looks like
+tx_obj = Tx(1, tx_ins, tx_outs, 0, testnet=True)
+print(f'Signing input:{tx_obj.sign_input(0, private_key)}')
+print()
+print(f'Tx serialized:{tx_obj.serialize().hex()}')
 # send this signed transaction on the network
 # wait a sec so this message goes through with time.sleep(1)
 # now ask for this transaction from the other node

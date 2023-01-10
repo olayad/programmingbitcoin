@@ -19,7 +19,7 @@ from network import (
 from script import p2pkh_script, Script
 from tx import Tx, TxIn, TxOut
 
-last_block_hex = '0000000000000024a214945dd448e45376891def9a8bf6d7e6c559c9617cf497'
+last_block_hex = '000000000000000b13ab09fe008d50182700c21c0d8b5284cda214635394aea5'
 
 secret = little_endian_to_int(hash256(b'guacamole12'))  # FILL THIS IN
 print(f'secret:{secret}')
@@ -27,11 +27,7 @@ private_key = PrivateKey(secret=secret)
 addr = private_key.point.address(testnet=True)
 h160 = decode_base58(addr)
 print(f'Address decoded:{addr}')
-exit()
-target_address = 'mwJn1YPMq7y5F8J3LkC5Hxg9PHyZ5K4cFv'
-target_h160 = decode_base58(target_address)
-target_script = p2pkh_script(target_h160)
-fee = 5000  # fee in satoshis
+print('waka')
 
 # connect to testnet.programmingbitcoin.com in testnet mode
 node = SimpleNode('testnet.programmingbitcoin.com', testnet=True, logging=False)
@@ -104,7 +100,11 @@ tx_ins = []
 tx_in = tx_ins.append(TxIn(prev_tx=prev_tx, prev_index=prev_index))
 
 # calculate the output amount (previous amount minus the fee)
+fee = 5000  # fee in satoshis
 target_satoshis = prev_amount - fee
+target_address = 'mwJn1YPMq7y5F8J3LkC5Hxg9PHyZ5K4cFv'
+target_h160 = decode_base58(target_address)
+target_script = p2pkh_script(target_h160)
 tx_outs = []
 tx_outs.append(TxOut(amount=target_satoshis, script_pubkey=target_script))
 

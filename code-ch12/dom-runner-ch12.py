@@ -120,7 +120,14 @@ print(f'Tx serialized:{tx_obj.serialize().hex()}')
 # wait a sec so this message goes through with time.sleep(1)
 # now ask for this transaction from the other node
 # create a GetDataMessage
+getdata = GetDataMessage()
 # ask for our transaction by adding it to the message
+getdata.add_data(TX_DATA_TYPE, tx_obj.hash())
+print(f'tx hash: {tx_obj.hash()}')
 # send the message
+node.send(getdata)
 # now wait for a Tx response
+received_tx = node.wait_for(Tx)
 # if the received tx has the same id as our tx, we are done!
+if received_tx.id() == tx_obj.id():
+    print('success!')

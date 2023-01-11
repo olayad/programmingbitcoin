@@ -27,7 +27,6 @@ private_key = PrivateKey(secret=secret)
 addr = private_key.point.address(testnet=True)
 h160 = decode_base58(addr)
 print(f'Address decoded:{addr}')
-print('waka')
 
 # connect to testnet.programmingbitcoin.com in testnet mode
 node = SimpleNode('testnet.programmingbitcoin.com', testnet=True, logging=False)
